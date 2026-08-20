@@ -1,9 +1,9 @@
-const CACHE_NAME = "grandpa-communicator-v2";
+const CACHE_NAME = "grandpa-communicator-v5-guangrao-phrases";
 const AUDIO_FILES = [
-  ...Array.from({ length: 52 }, (_, index) => `/audio/qwen-arthur/need-${index + 1}.wav`),
-  "/audio/qwen-arthur/quick-yes.wav",
-  "/audio/qwen-arthur/quick-no.wav",
-  "/audio/qwen-arthur/quick-help.wav",
+  ...Array.from({ length: 53 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
+  "/audio/grandpa-qwen/quick-yes.wav",
+  "/audio/grandpa-qwen/quick-no.wav",
+  "/audio/grandpa-qwen/quick-help.wav",
 ];
 const APP_SHELL = [
   "/",
