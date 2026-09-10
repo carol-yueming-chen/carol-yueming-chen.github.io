@@ -1,4 +1,4 @@
-const CACHE_NAME = "grandpa-communicator-v6-care-phrases";
+const CACHE_NAME = "grandpa-communicator-v9-redmi-layout";
 const AUDIO_FILES = [
   ...Array.from({ length: 61 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
   "/audio/grandpa-qwen/quick-yes.wav",
@@ -15,7 +15,11 @@ const APP_SHELL = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(APP_SHELL.filter((url) => !AUDIO_FILES.includes(url)));
+    await cacheUrlsIndividually(cache, AUDIO_FILES);
+  })());
   self.skipWaiting();
 });
 
@@ -29,32 +33,103 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("message", (event) => {
-  if (event.data?.type !== "CACHE_URLS" || !Array.isArray(event.data.urls)) return;
-  const urls = event.data.urls.filter((value) => {
-    try { return new URL(value).origin === self.location.origin; }
-    catch { return false; }
-  });
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(urls)));
+  if (event.data?.type === "CACHE_AUDIO") {
+    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cacheUrlsIndividually(cache, AUDIO_FILES)));
+    return;
+  }
+  if (event.data?.type === "CACHE_URLS" && Array.isArray(event.data.urls)) {
+    const urls = event.data.urls.filter((value) => {
+      try { return new URL(value).origin === self.location.origin; }
+      catch { return false; }
+    });
+    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cacheUrlsIndividually(cache, urls)));
+  }
 });
+
+async function cacheUrlsIndividually(cache, urls) {
+  await Promise.allSettled(urls.map(async (url) => {
+    const absoluteUrl = new URL(url, self.registration.scope).href;
+    const request = new Request(absoluteUrl, { cache: "reload" });
+    const cached = await cache.match(request);
+    if (cached) return;
+    const response = await fetch(request);
+    if (!response.ok) throw new Error(`Could not cache ${absoluteUrl}`);
+    await cache.put(request, response);
+  }));
+}
+
+function isAudioRequest(request) {
+  const audioRoot = new URL("audio/grandpa-qwen/", self.registration.scope).pathname;
+  return new URL(request.url).pathname.startsWith(audioRoot);
+}
+
+async function rangedResponse(response, rangeHeader) {
+  if (!rangeHeader) return response;
+  const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
+  if (!match) return new Response(null, { status: 416 });
+
+  const buffer = await response.arrayBuffer();
+  const size = buffer.byteLength;
+  const start = match[1] ? Number(match[1]) : 0;
+  const end = match[2] ? Math.min(Number(match[2]), size - 1) : size - 1;
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start > end || start >= size) {
+    return new Response(null, { status: 416, headers: { "Content-Range": `bytes */${size}` } });
+  }
+
+  const headers = new Headers(response.headers);
+  headers.set("Accept-Ranges", "bytes");
+  headers.set("Content-Range", `bytes ${start}-${end}/${size}`);
+  headers.set("Content-Length", String(end - start + 1));
+  return new Response(buffer.slice(start, end + 1), { status: 206, headers });
+}
+
+async function serveAudio(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cacheKey = new Request(request.url);
+  let response = await cache.match(cacheKey);
+
+  if (!response) {
+    const networkResponse = await fetch(cacheKey);
+    if (!networkResponse.ok) return networkResponse;
+    response = networkResponse.clone();
+    await cache.put(cacheKey, networkResponse);
+  }
+
+  return rangedResponse(response, request.headers.get("range"));
+}
+
+async function serveStatic(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+
+  const response = await fetch(request);
+  if (response.ok) await cache.put(request, response.clone());
+  return response;
+}
+
+async function serveNavigation(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    return (await caches.match(request)) || (await caches.match("/")) ||
+      new Response("Offline", { status: 503, statusText: "Offline" });
+  }
+}
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) return;
 
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      })
-      .catch(async () => {
-        const cached = await caches.match(request);
-        if (cached) return cached;
-        if (request.mode === "navigate") return caches.match("/");
-        return new Response("Offline", { status: 503, statusText: "Offline" });
-      }),
-  );
+  if (isAudioRequest(request)) {
+    event.respondWith(serveAudio(request));
+    return;
+  }
+
+  event.respondWith(request.mode === "navigate" ? serveNavigation(request) : serveStatic(request));
 });
