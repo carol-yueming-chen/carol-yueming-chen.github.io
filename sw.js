@@ -1,4 +1,4 @@
-const CACHE_NAME = "grandpa-communicator-v15-horizontal-gaze";
+const CACHE_NAME = "grandpa-communicator-v16-eye-labs";
 const AUDIO_FILES = [
   ...Array.from({ length: 61 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
   "/audio/grandpa-qwen/quick-yes.wav",
@@ -13,12 +13,28 @@ const APP_SHELL = [
   "/app-icon-512.png",
   ...AUDIO_FILES,
 ];
+const EYE_LAB_FILES = [
+  "/eye-labs/webgazer/webgazer.js",
+  "/eye-labs/webgazer/LICENSE",
+  "/eye-labs/peekr/peekr.js",
+  "/eye-labs/peekr/assets/peekr.onnx",
+  "/eye-labs/peekr/assets/ort.wasm.min.mjs",
+  "/eye-labs/peekr/assets/ort-wasm-simd-threaded.wasm",
+  "/eye-labs/peekr/assets/worker-CGlb1V_E.js",
+  "/eye-labs/peekr/LICENSE",
+  "/eye-labs/peekr/mediapipe/face_mesh.js",
+  "/eye-labs/peekr/mediapipe/face_mesh.binarypb",
+  "/eye-labs/peekr/mediapipe/face_mesh_solution_packed_assets.data",
+  "/eye-labs/peekr/mediapipe/face_mesh_solution_simd_wasm_bin.js",
+  "/eye-labs/peekr/mediapipe/face_mesh_solution_simd_wasm_bin.wasm",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     await cache.addAll(APP_SHELL.filter((url) => !AUDIO_FILES.includes(url)));
     await cacheUrlsIndividually(cache, AUDIO_FILES);
+    await cacheUrlsIndividually(cache, EYE_LAB_FILES);
   })());
   self.skipWaiting();
 });
