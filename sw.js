@@ -1,4 +1,4 @@
-const CACHE_NAME = "grandpa-communicator-v34-stable-grids";
+const CACHE_NAME = "grandpa-communicator-v36-full-horizontal-gaze";
 const AUDIO_FILES = [
   ...Array.from({ length: 61 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
   "/audio/grandpa-qwen/quick-yes.wav",
