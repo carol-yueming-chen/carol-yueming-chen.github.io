@@ -1504,12 +1504,16 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 		funcName: "equals"
 	});
 })), v = /* @__PURE__ */ c(l(), 1), y = /* @__PURE__ */ c(f(), 1), b = /* @__PURE__ */ c(_(), 1), x = globalThis.FaceMesh, S, C = !1, w = null, T, E, D, O, k, A;
-async function j(e) {
+function j(e) {
+	let t = new URL((/* @__PURE__ */ Object.assign({}))[`./assets/${e}`], import.meta.url);
+	return t.searchParams.set("v", "runtime-2"), t.href;
+}
+async function M(e) {
 	let t = await fetch(new URL("./assets/peekr.onnx", "" + import.meta.url));
 	if (!t.ok) throw Error(`Peekr model request failed (${t.status})`);
 	let n = await t.arrayBuffer(), r = await import(
 		/* @vite-ignore */
-		new URL("./assets/ort.webgl.min.mjs", "" + import.meta.url).href
+		j("ort.webgl.min.mjs")
 ), i, a = "Android WebGL";
 	try {
 		i = await r.InferenceSession.create(new Uint8Array(n), {
@@ -1519,8 +1523,11 @@ async function j(e) {
 	} catch (e) {
 		console.warn("Peekr WebGL unavailable; using the WASM fallback", e), r = await import(
 			/* @vite-ignore */
-			new URL("./assets/ort.wasm.min.mjs", "" + import.meta.url).href
-), r.env.wasm.wasmPaths = new URL("./assets/", "" + import.meta.url).href, r.env.wasm.numThreads = 1, r.env.wasm.proxy = !1, i = await r.InferenceSession.create(new Uint8Array(n), {
+			j("ort.wasm.min.mjs")
+), r.env.wasm.wasmPaths = {
+			mjs: j("ort-wasm-simd-threaded.mjs"),
+			wasm: j("ort-wasm-simd-threaded.wasm")
+		}, r.env.wasm.numThreads = 1, r.env.wasm.proxy = !1, i = await r.InferenceSession.create(new Uint8Array(n), {
 			executionProviders: ["wasm"],
 			graphOptimizationLevel: "all"
 		}), a = "Android WASM fallback";
@@ -1558,7 +1565,7 @@ async function j(e) {
 		}
 	};
 }
-function M(e, t = null, n = null) {
+function N(e, t = null, n = null) {
 	return w || (w = new Worker(new URL(
 		/* @vite-ignore */
 		"/eye-labs/peekr/assets/worker-D7ZMe-4W.js",
@@ -1582,10 +1589,10 @@ function M(e, t = null, n = null) {
 		console.error("Worker could not start", e), n?.(Error(e.message || "Peekr worker could not start"));
 	}, w);
 }
-function N(e, t, n, r = null, i = null, a = null, o = !1) {
-	T = e, r && i && (D = r, O = i, k = D.getContext("2d", { willReadFrequently: !0 }), A = O.getContext("2d", { willReadFrequently: !0 })), o ? j(n).then((e) => {
+function P(e, t, n, r = null, i = null, a = null, o = !1) {
+	T = e, r && i && (D = r, O = i, k = D.getContext("2d", { willReadFrequently: !0 }), A = O.getContext("2d", { willReadFrequently: !0 })), o ? M(n).then((e) => {
 		w = e, console.log(`👁️ Model loaded in ${e.backendName} mode`), t?.();
-	}).catch(a) : w = M(n, () => {
+	}).catch(a) : w = N(n, () => {
 		console.log("👁️ Model loaded inside worker, calling onReady"), t && t();
 	}, a), E = new x({ locateFile: (e) => `/eye-labs/peekr/mediapipe/${e}` }), E.setOptions({
 		selfieMode: !0,
@@ -1593,11 +1600,11 @@ function N(e, t, n, r = null, i = null, a = null, o = !1) {
 		maxNumFaces: 1,
 		minDetectionConfidence: .5,
 		minTrackingConfidence: .5
-	}), E.onResults(I), T.addEventListener("play", () => {
+	}), E.onResults(L), T.addEventListener("play", () => {
 		C = !0;
 	});
 }
-function P() {
+function F() {
 	C = !0;
 	async function e() {
 		if (C) {
@@ -1612,42 +1619,42 @@ function P() {
 	}
 	e();
 }
-function F() {
+function I() {
 	C = !1, S !== null && (cancelAnimationFrame(S), S = null), w?.terminate(), w = null;
 	try {
 		E?.close?.();
 	} catch {}
 	E = null;
 }
-function I(e) {
+function L(e) {
 	if (!e.multiFaceLandmarks || e.multiFaceLandmarks.length === 0) return;
 	let t = e.multiFaceLandmarks[0], n = T.videoWidth, r = T.videoHeight, i = [], a = [];
-	if (B(t, [
+	if (V(t, [
 		130,
 		27,
 		243,
 		23
-	], i), B(t, [
+	], i), V(t, [
 		463,
 		257,
 		359,
 		253
 	], a), i.length === 0 || a.length === 0) return;
-	let [o, s, c, l] = z(i, n, r), u = [
+	let [o, s, c, l] = B(i, n, r), u = [
 		o / n,
 		s / r,
 		c / n,
 		l / r
 	];
-	k.drawImage(T, Math.max(0, n - o - c), Math.max(0, s), Math.max(0, c), Math.max(0, l), 0, 0, 128, 128), [o, s, c, l] = z(a, n, r), u.push(o / n, s / r, c / n, l / r), A.drawImage(T, Math.max(0, n - o - c), Math.max(0, s), Math.max(0, c), Math.max(0, l), 0, 0, 128, 128);
-	let d = L(k.getImageData(0, 0, 128, 128).data, 128, 128), f = L(A.getImageData(0, 0, 128, 128).data, 128, 128), p = R(u);
+	k.drawImage(T, Math.max(0, n - o - c), Math.max(0, s), Math.max(0, c), Math.max(0, l), 0, 0, 128, 128), [o, s, c, l] = B(a, n, r), u.push(o / n, s / r, c / n, l / r), A.drawImage(T, Math.max(0, n - o - c), Math.max(0, s), Math.max(0, c), Math.max(0, l), 0, 0, 128, 128);
+	let d = R(k.getImageData(0, 0, 128, 128).data, 128, 128), f = R(A.getImageData(0, 0, 128, 128).data, 128, 128), p = z(u);
 	w.postMessage({
 		input1: { data: d },
 		input2: { data: f },
 		kpsTensor: { data: p }
 	});
 }
-function L(e, t, n) {
+function R(e, t, n) {
 	let r = (0, y.default)(new Float32Array(e), [
 		t,
 		n,
@@ -1660,11 +1667,11 @@ function L(e, t, n) {
 	]);
 	return b.default.divseq(r, 255), b.assign(i.pick(0, 0, null, null), r.pick(null, null, 2)), b.assign(i.pick(0, 1, null, null), r.pick(null, null, 1)), b.assign(i.pick(0, 2, null, null), r.pick(null, null, 0)), new Float32Array(i.data);
 }
-function R(e) {
+function z(e) {
 	let t = (0, y.default)(new Float32Array(e), [e.length]), n = (0, y.default)(new Float32Array(e.length), [1, e.length]);
 	return b.assign(n.pick(0, null), t), new Float32Array(n.data);
 }
-function z(e, t, n) {
+function B(e, t, n) {
 	let r = (e[0][0] + e[2][0]) / 2, i = (e[1][1] + e[3][1]) / 2, a = e[2][0] - e[0][0], o = e[3][1] - e[1][1], s = [
 		r,
 		i,
@@ -1678,7 +1685,7 @@ function z(e, t, n) {
 		o
 	];
 }
-function B(e, t, n) {
+function V(e, t, n) {
 	t.forEach((t) => {
 		let r = e[t];
 		n.push([r.x, r.y]);
@@ -1686,52 +1693,52 @@ function B(e, t, n) {
 }
 //#endregion
 //#region src/core.js
-var V = !1, H = {
+var H = !1, U = {
 	x: new v.default(),
 	y: new v.default()
 };
-function U(e, t) {
-	return [H.x.filter(e), H.y.filter(t)];
+function W(e, t) {
+	return [U.x.filter(e), U.y.filter(t)];
 }
-function W({ video: e = null, canvas: t = null, leftEyeCanvas: n = null, rightEyeCanvas: r = null, onReady: i = null, onGaze: a = null, onError: o = null, compatibilityMode: s = !1 } = {}) {
+function G({ video: e = null, canvas: t = null, leftEyeCanvas: n = null, rightEyeCanvas: r = null, onReady: i = null, onGaze: a = null, onError: o = null, compatibilityMode: s = !1 } = {}) {
 	if (!e || !t) {
 		console.error("Video and canvas elements must be provided"), o?.(/* @__PURE__ */ Error("Video and canvas elements must be provided"));
 		return;
 	}
 	console.log("initialising ..."), navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then((t) => {
-		e.srcObject = t, N(e, () => {
-			V = !0, console.log("initialised, ready to run eyetracking"), i && i();
+		e.srcObject = t, P(e, () => {
+			H = !0, console.log("initialised, ready to run eyetracking"), i && i();
 		}, a, n, r, o, s);
 	}).catch((e) => {
 		console.error("Could not start the front camera", e), o?.(e);
 	});
 }
-function G() {
-	if (!V) {
+function K() {
+	if (!H) {
 		console.warn("Eye tracking has not been initialized. Call initEyeTracking() first.");
 		return;
 	}
-	P();
-}
-function K() {
 	F();
+}
+function q() {
+	I();
 }
 //#endregion
 //#region src/aac-bridge.js
-var q = null;
-function J({ video: e, canvas: t, leftEyeCanvas: n, rightEyeCanvas: r, onReady: i, onGaze: a, onError: o, compatibilityMode: s = !1 }) {
-	q = e, W({
+var J = null;
+function Y({ video: e, canvas: t, leftEyeCanvas: n, rightEyeCanvas: r, onReady: i, onGaze: a, onError: o, compatibilityMode: s = !1 }) {
+	J = e, G({
 		video: e,
 		canvas: t,
 		leftEyeCanvas: n,
 		rightEyeCanvas: r,
 		onReady: () => {
-			G(), i?.();
+			K(), i?.();
 		},
 		onGaze: (e) => {
 			let t = e?.output?.cpuData ?? e?.output?.data;
 			if (!t || t.length < 2) return;
-			let [n, r] = U(t[0], t[1]);
+			let [n, r] = W(t[0], t[1]);
 			Number.isFinite(n) && Number.isFinite(r) && a?.({
 				x: n,
 				y: r
@@ -1741,10 +1748,10 @@ function J({ video: e, canvas: t, leftEyeCanvas: n, rightEyeCanvas: r, onReady: 
 		compatibilityMode: s
 	});
 }
-function Y() {
-	K();
-	let e = q?.srcObject;
-	e instanceof MediaStream && e.getTracks().forEach((e) => e.stop()), q && (q.srcObject = null), q = null;
+function X() {
+	q();
+	let e = J?.srcObject;
+	e instanceof MediaStream && e.getTracks().forEach((e) => e.stop()), J && (J.srcObject = null), J = null;
 }
 //#endregion
-export { J as startPeekr, Y as stopPeekr };
+export { Y as startPeekr, X as stopPeekr };

@@ -1,4 +1,4 @@
-const CACHE_NAME = "grandpa-communicator-v24-gaze-coordinates";
+const CACHE_NAME = "grandpa-communicator-v25-runtime-cache-bust";
 const AUDIO_FILES = [
   ...Array.from({ length: 61 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
   "/audio/grandpa-qwen/quick-yes.wav",
@@ -22,6 +22,10 @@ const EYE_LAB_FILES = [
   "/eye-labs/peekr/assets/ort.webgl.min.mjs",
   "/eye-labs/peekr/assets/ort-wasm-simd-threaded.mjs",
   "/eye-labs/peekr/assets/ort-wasm-simd-threaded.wasm",
+  "/eye-labs/peekr/assets/ort.webgl.min.mjs?v=runtime-2",
+  "/eye-labs/peekr/assets/ort.wasm.min.mjs?v=runtime-2",
+  "/eye-labs/peekr/assets/ort-wasm-simd-threaded.mjs?v=runtime-2",
+  "/eye-labs/peekr/assets/ort-wasm-simd-threaded.wasm?v=runtime-2",
   "/eye-labs/peekr/assets/worker-D7ZMe-4W.js",
   "/eye-labs/peekr/LICENSE",
   "/eye-labs/peekr/mediapipe/face_mesh.js",
