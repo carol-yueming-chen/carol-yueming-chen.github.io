@@ -1610,8 +1610,8 @@ function F() {
 		if (C) {
 			try {
 				await E.send({ image: T });
-			} catch (e) {
-				console.error("Face tracking failed", e), C = !1;
+			} catch (t) {
+				console.error("Face tracking frame failed; retrying", t), S = requestAnimationFrame(e);
 				return;
 			}
 			S = requestAnimationFrame(e);
@@ -1726,14 +1726,29 @@ function q() {
 //#endregion
 //#region src/aac-bridge.js
 var J = null;
+function waitForVideoFrame(e) {
+	if (e.readyState >= 2 && e.videoWidth > 0 && e.videoHeight > 0) return Promise.resolve();
+	return new Promise((t, n) => {
+		let r = setTimeout(() => {
+			e.removeEventListener("loadeddata", i), n(Error("Peekr camera frame timeout"));
+		}, 15e3), i = () => {
+			clearTimeout(r), t();
+		};
+		e.addEventListener("loadeddata", i, { once: !0 });
+	});
+}
 function Y({ video: e, canvas: t, leftEyeCanvas: n, rightEyeCanvas: r, onReady: i, onGaze: a, onError: o, compatibilityMode: s = !1 }) {
 	J = e, G({
 		video: e,
 		canvas: t,
 		leftEyeCanvas: n,
 		rightEyeCanvas: r,
-		onReady: () => {
-			K(), i?.();
+		onReady: async () => {
+			try {
+				await waitForVideoFrame(e), e.muted = !0, e.playsInline = !0, await e.play(), K(), i?.();
+			} catch (e) {
+				o?.(e);
+			}
 		},
 		onGaze: (e) => {
 			let t = e?.output?.cpuData ?? e?.output?.data;
