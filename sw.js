@@ -1,4 +1,4 @@
-const CACHE_NAME = "grandpa-communicator-v29-peekr-android-runtime-path";
+const CACHE_NAME = "grandpa-communicator-v30-webgazer-direct-camera";
 const AUDIO_FILES = [
   ...Array.from({ length: 61 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
   "/audio/grandpa-qwen/quick-yes.wav",
