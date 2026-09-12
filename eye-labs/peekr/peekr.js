@@ -1505,8 +1505,8 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 	});
 })), v = /* @__PURE__ */ c(l(), 1), y = /* @__PURE__ */ c(f(), 1), b = /* @__PURE__ */ c(_(), 1), x = globalThis.FaceMesh, S, C = !1, w = null, T, E, D, O, k, A;
 function j(e) {
-	let t = new URL((/* @__PURE__ */ Object.assign({}))[`./assets/${e}`], import.meta.url);
-	return t.searchParams.set("v", "runtime-2"), t.href;
+	let t = String(import.meta.url), n = t.slice(0, t.lastIndexOf("/") + 1), r = new URL(`assets/${e}`, n);
+	return r.searchParams.set("v", "runtime-3"), r.href;
 }
 async function M(e) {
 	let t = await fetch(new URL("./assets/peekr.onnx", "" + import.meta.url));
