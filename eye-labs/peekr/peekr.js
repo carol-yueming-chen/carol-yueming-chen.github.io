@@ -1504,7 +1504,50 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 		funcName: "equals"
 	});
 })), v = /* @__PURE__ */ c(l(), 1), y = /* @__PURE__ */ c(f(), 1), b = /* @__PURE__ */ c(_(), 1), x = globalThis.FaceMesh, S, C = !1, w = null, T, E, D, O, k, A;
-function j(e, t = null, n = null) {
+async function j(e) {
+	let t = await import(
+		/* @vite-ignore */
+		new URL("./assets/ort.wasm.min.mjs", "" + import.meta.url).href
+);
+	t.env.wasm.wasmPaths = new URL("./assets/", "" + import.meta.url).href, t.env.wasm.numThreads = 1, t.env.wasm.proxy = !1;
+	let n = await fetch(new URL("./assets/peekr.onnx", "" + import.meta.url));
+	if (!n.ok) throw Error(`Peekr model request failed (${n.status})`);
+	let r = new Uint8Array(await n.arrayBuffer()), i = await t.InferenceSession.create(r, {
+		executionProviders: ["wasm"],
+		graphOptimizationLevel: "all"
+	}), a = !0, o = !1;
+	return {
+		async postMessage({ input1: n, input2: r, kpsTensor: s }) {
+			if (!(!a || o)) {
+				o = !0;
+				try {
+					let o = await i.run({
+						input1: new t.Tensor("float32", n.data, [
+							1,
+							3,
+							128,
+							128
+						]),
+						input2: new t.Tensor("float32", r.data, [
+							1,
+							3,
+							128,
+							128
+						]),
+						kps: new t.Tensor("float32", s.data, [1, 8])
+					});
+					a && e?.(o);
+				} finally {
+					o = !1;
+				}
+			}
+		},
+		terminate() {
+			a = !1;
+		}
+	};
+}
+function M(e, t = null, n = null) {
 	return w || (w = new Worker(new URL(
 		/* @vite-ignore */
 		"/eye-labs/peekr/assets/worker-D7ZMe-4W.js",
@@ -1528,8 +1571,10 @@ function j(e, t = null, n = null) {
 		console.error("Worker could not start", e), n?.(Error(e.message || "Peekr worker could not start"));
 	}, w);
 }
-function M(e, t, n, r = null, i = null, a = null) {
-	T = e, r && i && (D = r, O = i, k = D.getContext("2d", { willReadFrequently: !0 }), A = O.getContext("2d", { willReadFrequently: !0 })), w = j(n, () => {
+function N(e, t, n, r = null, i = null, a = null, o = !1) {
+	T = e, r && i && (D = r, O = i, k = D.getContext("2d", { willReadFrequently: !0 }), A = O.getContext("2d", { willReadFrequently: !0 })), o ? j(n).then((e) => {
+		w = e, console.log("👁️ Model loaded in Android compatibility mode"), t?.();
+	}).catch(a) : w = M(n, () => {
 		console.log("👁️ Model loaded inside worker, calling onReady"), t && t();
 	}, a), E = new x({ locateFile: (e) => `/eye-labs/peekr/mediapipe/${e}` }), E.setOptions({
 		selfieMode: !0,
@@ -1537,11 +1582,11 @@ function M(e, t, n, r = null, i = null, a = null) {
 		maxNumFaces: 1,
 		minDetectionConfidence: .5,
 		minTrackingConfidence: .5
-	}), E.onResults(F), T.addEventListener("play", () => {
+	}), E.onResults(I), T.addEventListener("play", () => {
 		C = !0;
 	});
 }
-function N() {
+function P() {
 	C = !0;
 	async function e() {
 		if (C) {
@@ -1556,42 +1601,42 @@ function N() {
 	}
 	e();
 }
-function P() {
+function F() {
 	C = !1, S !== null && (cancelAnimationFrame(S), S = null), w?.terminate(), w = null;
 	try {
 		E?.close?.();
 	} catch {}
 	E = null;
 }
-function F(e) {
+function I(e) {
 	if (!e.multiFaceLandmarks || e.multiFaceLandmarks.length === 0) return;
 	let t = e.multiFaceLandmarks[0], n = T.videoWidth, r = T.videoHeight, i = [], a = [];
-	if (z(t, [
+	if (B(t, [
 		130,
 		27,
 		243,
 		23
-	], i), z(t, [
+	], i), B(t, [
 		463,
 		257,
 		359,
 		253
 	], a), i.length === 0 || a.length === 0) return;
-	let [o, s, c, l] = R(i, n, r), u = [
+	let [o, s, c, l] = z(i, n, r), u = [
 		o / n,
 		s / r,
 		c / n,
 		l / r
 	];
-	k.drawImage(T, Math.max(0, n - o - c), Math.max(0, s), Math.max(0, c), Math.max(0, l), 0, 0, 128, 128), [o, s, c, l] = R(a, n, r), u.push(o / n, s / r, c / n, l / r), A.drawImage(T, Math.max(0, n - o - c), Math.max(0, s), Math.max(0, c), Math.max(0, l), 0, 0, 128, 128);
-	let d = I(k.getImageData(0, 0, 128, 128).data, 128, 128), f = I(A.getImageData(0, 0, 128, 128).data, 128, 128), p = L(u);
+	k.drawImage(T, Math.max(0, n - o - c), Math.max(0, s), Math.max(0, c), Math.max(0, l), 0, 0, 128, 128), [o, s, c, l] = z(a, n, r), u.push(o / n, s / r, c / n, l / r), A.drawImage(T, Math.max(0, n - o - c), Math.max(0, s), Math.max(0, c), Math.max(0, l), 0, 0, 128, 128);
+	let d = L(k.getImageData(0, 0, 128, 128).data, 128, 128), f = L(A.getImageData(0, 0, 128, 128).data, 128, 128), p = R(u);
 	w.postMessage({
 		input1: { data: d },
 		input2: { data: f },
 		kpsTensor: { data: p }
 	});
 }
-function I(e, t, n) {
+function L(e, t, n) {
 	let r = (0, y.default)(new Float32Array(e), [
 		t,
 		n,
@@ -1604,11 +1649,11 @@ function I(e, t, n) {
 	]);
 	return b.default.divseq(r, 255), b.assign(i.pick(0, 0, null, null), r.pick(null, null, 2)), b.assign(i.pick(0, 1, null, null), r.pick(null, null, 1)), b.assign(i.pick(0, 2, null, null), r.pick(null, null, 0)), new Float32Array(i.data);
 }
-function L(e) {
+function R(e) {
 	let t = (0, y.default)(new Float32Array(e), [e.length]), n = (0, y.default)(new Float32Array(e.length), [1, e.length]);
 	return b.assign(n.pick(0, null), t), new Float32Array(n.data);
 }
-function R(e, t, n) {
+function z(e, t, n) {
 	let r = (e[0][0] + e[2][0]) / 2, i = (e[1][1] + e[3][1]) / 2, a = e[2][0] - e[0][0], o = e[3][1] - e[1][1], s = [
 		r,
 		i,
@@ -1622,7 +1667,7 @@ function R(e, t, n) {
 		o
 	];
 }
-function z(e, t, n) {
+function B(e, t, n) {
 	t.forEach((t) => {
 		let r = e[t];
 		n.push([r.x, r.y]);
@@ -1630,64 +1675,65 @@ function z(e, t, n) {
 }
 //#endregion
 //#region src/core.js
-var B = !1, V = {
+var V = !1, H = {
 	x: new v.default(),
 	y: new v.default()
 };
-function H(e, t) {
-	return [V.x.filter(e), V.y.filter(t)];
+function U(e, t) {
+	return [H.x.filter(e), H.y.filter(t)];
 }
-function U({ video: e = null, canvas: t = null, leftEyeCanvas: n = null, rightEyeCanvas: r = null, onReady: i = null, onGaze: a = null, onError: o = null } = {}) {
+function W({ video: e = null, canvas: t = null, leftEyeCanvas: n = null, rightEyeCanvas: r = null, onReady: i = null, onGaze: a = null, onError: o = null, compatibilityMode: s = !1 } = {}) {
 	if (!e || !t) {
 		console.error("Video and canvas elements must be provided"), o?.(/* @__PURE__ */ Error("Video and canvas elements must be provided"));
 		return;
 	}
 	console.log("initialising ..."), navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then((t) => {
-		e.srcObject = t, M(e, () => {
-			B = !0, console.log("initialised, ready to run eyetracking"), i && i();
-		}, a, n, r, o);
+		e.srcObject = t, N(e, () => {
+			V = !0, console.log("initialised, ready to run eyetracking"), i && i();
+		}, a, n, r, o, s);
 	}).catch((e) => {
 		console.error("Could not start the front camera", e), o?.(e);
 	});
 }
-function W() {
-	if (!B) {
+function G() {
+	if (!V) {
 		console.warn("Eye tracking has not been initialized. Call initEyeTracking() first.");
 		return;
 	}
-	N();
-}
-function G() {
 	P();
+}
+function K() {
+	F();
 }
 //#endregion
 //#region src/aac-bridge.js
-var K = null;
-function q({ video: e, canvas: t, leftEyeCanvas: n, rightEyeCanvas: r, onReady: i, onGaze: a, onError: o }) {
-	K = e, U({
+var q = null;
+function J({ video: e, canvas: t, leftEyeCanvas: n, rightEyeCanvas: r, onReady: i, onGaze: a, onError: o, compatibilityMode: s = !1 }) {
+	q = e, W({
 		video: e,
 		canvas: t,
 		leftEyeCanvas: n,
 		rightEyeCanvas: r,
 		onReady: () => {
-			W(), i?.();
+			G(), i?.();
 		},
 		onGaze: (e) => {
-			let t = e?.output?.cpuData;
+			let t = e?.output?.cpuData ?? e?.output?.data;
 			if (!t || t.length < 2) return;
-			let [n, r] = H(t[0], t[1]);
+			let [n, r] = U(t[0], t[1]);
 			Number.isFinite(n) && Number.isFinite(r) && a?.({
 				x: n,
 				y: r
 			});
 		},
-		onError: o
+		onError: o,
+		compatibilityMode: s
 	});
 }
-function J() {
-	G();
-	let e = K?.srcObject;
-	e instanceof MediaStream && e.getTracks().forEach((e) => e.stop()), K && (K.srcObject = null), K = null;
+function Y() {
+	K();
+	let e = q?.srcObject;
+	e instanceof MediaStream && e.getTracks().forEach((e) => e.stop()), q && (q.srcObject = null), q = null;
 }
 //#endregion
-export { q as startPeekr, J as stopPeekr };
+export { J as startPeekr, Y as stopPeekr };
