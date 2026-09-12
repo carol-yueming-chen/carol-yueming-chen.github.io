@@ -1,6 +1,6 @@
-const CACHE_NAME = "grandpa-communicator-v39-saved-gaze-calibration";
+const CACHE_NAME = "grandpa-communicator-v40-priority-phlegm";
 const AUDIO_FILES = [
-  ...Array.from({ length: 61 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
+  ...Array.from({ length: 63 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
   "/audio/grandpa-qwen/quick-yes.wav",
   "/audio/grandpa-qwen/quick-no.wav",
   "/audio/grandpa-qwen/quick-help.wav",
