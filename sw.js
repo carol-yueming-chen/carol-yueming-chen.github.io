@@ -1,4 +1,4 @@
-const CACHE_NAME = "grandpa-communicator-v40-priority-phlegm";
+const CACHE_NAME = "grandpa-communicator-v41-phlegm-in-more";
 const AUDIO_FILES = [
   ...Array.from({ length: 63 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
   "/audio/grandpa-qwen/quick-yes.wav",
