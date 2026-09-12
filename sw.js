@@ -1,4 +1,4 @@
-const CACHE_NAME = "grandpa-communicator-v21-peekr-webgl";
+const CACHE_NAME = "grandpa-communicator-v22-webgazer-window";
 const AUDIO_FILES = [
   ...Array.from({ length: 61 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
   "/audio/grandpa-qwen/quick-yes.wav",
