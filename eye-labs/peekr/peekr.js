@@ -1504,32 +1504,34 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 		funcName: "equals"
 	});
 })), v = /* @__PURE__ */ c(l(), 1), y = /* @__PURE__ */ c(f(), 1), b = /* @__PURE__ */ c(_(), 1), x = globalThis.FaceMesh, S, C = !1, w = null, T, E, D, O, k, A;
-function j(e, t = null) {
+function j(e, t = null, n = null) {
 	return w || (w = new Worker(new URL(
 		/* @vite-ignore */
-		"/eye-labs/peekr/assets/worker-CGlb1V_E.js",
+		"/eye-labs/peekr/assets/worker-D7ZMe-4W.js",
 		"" + import.meta.url
-	), { type: "module" }), w.onmessage = (n) => {
-		let { type: r, error: i, ...a } = n.data;
-		if (i) {
-			console.error("Worker error:", i);
+	), { type: "module" }), w.onmessage = (r) => {
+		let { type: i, error: a, ...o } = r.data;
+		if (a) {
+			console.error("Worker error:", a), n?.(Error(a));
 			return;
 		}
-		if (r === "modelLoaded") {
+		if (i === "modelLoaded") {
 			console.log("ℹ️ Received \"modelLoaded\" from worker"), t && t();
 			return;
 		}
-		if (r === "modelLoadFailed") {
-			console.error("⚠️ Model failed to load inside worker");
+		if (i === "modelLoadFailed") {
+			console.error("⚠️ Model failed to load inside worker", a), n?.(Error(a || "Peekr model failed to load"));
 			return;
 		}
-		e && e(a);
+		e && e(o);
+	}, w.onerror = (e) => {
+		console.error("Worker could not start", e), n?.(Error(e.message || "Peekr worker could not start"));
 	}, w);
 }
-function M(e, t, n, r = null, i = null) {
+function M(e, t, n, r = null, i = null, a = null) {
 	T = e, r && i && (D = r, O = i, k = D.getContext("2d", { willReadFrequently: !0 }), A = O.getContext("2d", { willReadFrequently: !0 })), w = j(n, () => {
 		console.log("👁️ Model loaded inside worker, calling onReady"), t && t();
-	}), E = new x({ locateFile: (e) => `/eye-labs/peekr/mediapipe/${e}` }), E.setOptions({
+	}, a), E = new x({ locateFile: (e) => `/eye-labs/peekr/mediapipe/${e}` }), E.setOptions({
 		selfieMode: !0,
 		refineLandmarks: !0,
 		maxNumFaces: 1,
@@ -1542,12 +1544,24 @@ function M(e, t, n, r = null, i = null) {
 function N() {
 	C = !0;
 	async function e() {
-		C && (await E.send({ image: T }), S = requestAnimationFrame(e));
+		if (C) {
+			try {
+				await E.send({ image: T });
+			} catch (e) {
+				console.error("Face tracking failed", e), C = !1;
+				return;
+			}
+			S = requestAnimationFrame(e);
+		}
 	}
 	e();
 }
 function P() {
-	C = !1, S !== null && (cancelAnimationFrame(S), S = null);
+	C = !1, S !== null && (cancelAnimationFrame(S), S = null), w?.terminate(), w = null;
+	try {
+		E?.close?.();
+	} catch {}
+	E = null;
 }
 function F(e) {
 	if (!e.multiFaceLandmarks || e.multiFaceLandmarks.length === 0) return;
@@ -1623,15 +1637,17 @@ var B = !1, V = {
 function H(e, t) {
 	return [V.x.filter(e), V.y.filter(t)];
 }
-function U({ video: e = null, canvas: t = null, leftEyeCanvas: n = null, rightEyeCanvas: r = null, onReady: i = null, onGaze: a = null } = {}) {
+function U({ video: e = null, canvas: t = null, leftEyeCanvas: n = null, rightEyeCanvas: r = null, onReady: i = null, onGaze: a = null, onError: o = null } = {}) {
 	if (!e || !t) {
-		console.error("Video and canvas elements must be provided");
+		console.error("Video and canvas elements must be provided"), o?.(/* @__PURE__ */ Error("Video and canvas elements must be provided"));
 		return;
 	}
 	console.log("initialising ..."), navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then((t) => {
 		e.srcObject = t, M(e, () => {
 			B = !0, console.log("initialised, ready to run eyetracking"), i && i();
-		}, a, n, r);
+		}, a, n, r, o);
+	}).catch((e) => {
+		console.error("Could not start the front camera", e), o?.(e);
 	});
 }
 function W() {
@@ -1647,7 +1663,7 @@ function G() {
 //#endregion
 //#region src/aac-bridge.js
 var K = null;
-function q({ video: e, canvas: t, leftEyeCanvas: n, rightEyeCanvas: r, onReady: i, onGaze: a }) {
+function q({ video: e, canvas: t, leftEyeCanvas: n, rightEyeCanvas: r, onReady: i, onGaze: a, onError: o }) {
 	K = e, U({
 		video: e,
 		canvas: t,
@@ -1664,7 +1680,8 @@ function q({ video: e, canvas: t, leftEyeCanvas: n, rightEyeCanvas: r, onReady: 
 				x: n,
 				y: r
 			});
-		}
+		},
+		onError: o
 	});
 }
 function J() {

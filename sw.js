@@ -1,4 +1,4 @@
-const CACHE_NAME = "grandpa-communicator-v16-eye-labs";
+const CACHE_NAME = "grandpa-communicator-v18-peekr-startup";
 const AUDIO_FILES = [
   ...Array.from({ length: 61 }, (_, index) => `/audio/grandpa-qwen/need-${index + 1}.wav`),
   "/audio/grandpa-qwen/quick-yes.wav",
@@ -20,7 +20,7 @@ const EYE_LAB_FILES = [
   "/eye-labs/peekr/assets/peekr.onnx",
   "/eye-labs/peekr/assets/ort.wasm.min.mjs",
   "/eye-labs/peekr/assets/ort-wasm-simd-threaded.wasm",
-  "/eye-labs/peekr/assets/worker-CGlb1V_E.js",
+  "/eye-labs/peekr/assets/worker-D7ZMe-4W.js",
   "/eye-labs/peekr/LICENSE",
   "/eye-labs/peekr/mediapipe/face_mesh.js",
   "/eye-labs/peekr/mediapipe/face_mesh.binarypb",
@@ -34,7 +34,9 @@ self.addEventListener("install", (event) => {
     const cache = await caches.open(CACHE_NAME);
     await cache.addAll(APP_SHELL.filter((url) => !AUDIO_FILES.includes(url)));
     await cacheUrlsIndividually(cache, AUDIO_FILES);
-    await cacheUrlsIndividually(cache, EYE_LAB_FILES);
+    // Experimental eye models are cached on demand when that mode is opened.
+    // This keeps core communication and offline audio ready without making a
+    // 24MB model download block every service-worker update.
   })());
   self.skipWaiting();
 });
@@ -51,6 +53,10 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("message", (event) => {
   if (event.data?.type === "CACHE_AUDIO") {
     event.waitUntil(caches.open(CACHE_NAME).then((cache) => cacheUrlsIndividually(cache, AUDIO_FILES)));
+    return;
+  }
+  if (event.data?.type === "CACHE_EYE_LABS") {
+    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cacheUrlsIndividually(cache, EYE_LAB_FILES)));
     return;
   }
   if (event.data?.type === "CACHE_URLS" && Array.isArray(event.data.urls)) {
