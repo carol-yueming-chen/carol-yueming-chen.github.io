@@ -1505,43 +1505,56 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 	});
 })), v = /* @__PURE__ */ c(l(), 1), y = /* @__PURE__ */ c(f(), 1), b = /* @__PURE__ */ c(_(), 1), x = globalThis.FaceMesh, S, C = !1, w = null, T, E, D, O, k, A;
 async function j(e) {
-	let t = await import(
+	let t = await fetch(new URL("./assets/peekr.onnx", "" + import.meta.url));
+	if (!t.ok) throw Error(`Peekr model request failed (${t.status})`);
+	let n = await t.arrayBuffer(), r = await import(
 		/* @vite-ignore */
 		new URL("./assets/ort.webgl.min.mjs", "" + import.meta.url).href
-), n = await fetch(new URL("./assets/peekr.onnx", "" + import.meta.url));
-	if (!n.ok) throw Error(`Peekr model request failed (${n.status})`);
-	let r = new Uint8Array(await n.arrayBuffer()), i = await t.InferenceSession.create(r, {
-		executionProviders: ["webgl"],
-		graphOptimizationLevel: "all"
-	}), a = !0, o = !1;
+), i, a = "Android WebGL";
+	try {
+		i = await r.InferenceSession.create(new Uint8Array(n), {
+			executionProviders: ["webgl"],
+			graphOptimizationLevel: "all"
+		});
+	} catch (e) {
+		console.warn("Peekr WebGL unavailable; using the WASM fallback", e), r = await import(
+			/* @vite-ignore */
+			new URL("./assets/ort.wasm.min.mjs", "" + import.meta.url).href
+), r.env.wasm.wasmPaths = new URL("./assets/", "" + import.meta.url).href, r.env.wasm.numThreads = 1, r.env.wasm.proxy = !1, i = await r.InferenceSession.create(new Uint8Array(n), {
+			executionProviders: ["wasm"],
+			graphOptimizationLevel: "all"
+		}), a = "Android WASM fallback";
+	}
+	let o = !0, s = !1;
 	return {
-		async postMessage({ input1: n, input2: r, kpsTensor: s }) {
-			if (!(!a || o)) {
-				o = !0;
+		backendName: a,
+		async postMessage({ input1: t, input2: n, kpsTensor: a }) {
+			if (!(!o || s)) {
+				s = !0;
 				try {
-					let o = await i.run({
-						input1: new t.Tensor("float32", n.data, [
+					let s = await i.run({
+						input1: new r.Tensor("float32", t.data, [
 							1,
 							3,
 							128,
 							128
 						]),
-						input2: new t.Tensor("float32", r.data, [
+						input2: new r.Tensor("float32", n.data, [
 							1,
 							3,
 							128,
 							128
 						]),
-						kps: new t.Tensor("float32", s.data, [1, 8])
+						kps: new r.Tensor("float32", a.data, [1, 8])
 					});
-					a && e?.(o);
+					o && e?.(s);
 				} finally {
-					o = !1;
+					s = !1;
 				}
 			}
 		},
 		terminate() {
-			a = !1;
+			o = !1;
 		}
 	};
 }
@@ -1571,7 +1584,7 @@ function M(e, t = null, n = null) {
 }
 function N(e, t, n, r = null, i = null, a = null, o = !1) {
 	T = e, r && i && (D = r, O = i, k = D.getContext("2d", { willReadFrequently: !0 }), A = O.getContext("2d", { willReadFrequently: !0 })), o ? j(n).then((e) => {
-		w = e, console.log("👁️ Model loaded in Android WebGL mode"), t?.();
+		w = e, console.log(`👁️ Model loaded in ${e.backendName} mode`), t?.();
 	}).catch(a) : w = M(n, () => {
 		console.log("👁️ Model loaded inside worker, calling onReady"), t && t();
 	}, a), E = new x({ locateFile: (e) => `/eye-labs/peekr/mediapipe/${e}` }), E.setOptions({
