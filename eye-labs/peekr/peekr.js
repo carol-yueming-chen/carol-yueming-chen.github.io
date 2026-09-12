@@ -1507,13 +1507,11 @@ var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescr
 async function j(e) {
 	let t = await import(
 		/* @vite-ignore */
-		new URL("./assets/ort.wasm.min.mjs", "" + import.meta.url).href
-);
-	t.env.wasm.wasmPaths = new URL("./assets/", "" + import.meta.url).href, t.env.wasm.numThreads = 1, t.env.wasm.proxy = !1;
-	let n = await fetch(new URL("./assets/peekr.onnx", "" + import.meta.url));
+		new URL("./assets/ort.webgl.min.mjs", "" + import.meta.url).href
+), n = await fetch(new URL("./assets/peekr.onnx", "" + import.meta.url));
 	if (!n.ok) throw Error(`Peekr model request failed (${n.status})`);
 	let r = new Uint8Array(await n.arrayBuffer()), i = await t.InferenceSession.create(r, {
-		executionProviders: ["wasm"],
+		executionProviders: ["webgl"],
 		graphOptimizationLevel: "all"
 	}), a = !0, o = !1;
 	return {
@@ -1573,7 +1571,7 @@ function M(e, t = null, n = null) {
 }
 function N(e, t, n, r = null, i = null, a = null, o = !1) {
 	T = e, r && i && (D = r, O = i, k = D.getContext("2d", { willReadFrequently: !0 }), A = O.getContext("2d", { willReadFrequently: !0 })), o ? j(n).then((e) => {
-		w = e, console.log("👁️ Model loaded in Android compatibility mode"), t?.();
+		w = e, console.log("👁️ Model loaded in Android WebGL mode"), t?.();
 	}).catch(a) : w = M(n, () => {
 		console.log("👁️ Model loaded inside worker, calling onReady"), t && t();
 	}, a), E = new x({ locateFile: (e) => `/eye-labs/peekr/mediapipe/${e}` }), E.setOptions({
